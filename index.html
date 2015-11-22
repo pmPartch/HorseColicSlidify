@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Horse Colic Severity Predictor</title>
+  <meta charset="utf-8">
+  <meta name="description" content="Horse Colic Severity Predictor">
+  <meta name="author" content="Peter Partch">
+  <meta name="generator" content="slidify" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta http-equiv="X-UA-Compatible" content="chrome=1">
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/default.css" media="all" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/phone.css" 
+    media="only screen and (max-device-width: 480px)" >
+  <link rel="stylesheet" href="libraries/frameworks/io2012/css/slidify.css" >
+  <link rel="stylesheet" href="libraries/highlighters/highlight.js/css/tomorrow.css" />
+  <base target="_blank"> <!-- This amazingness opens all links in a new tab. -->  <link rel=stylesheet href="./assets/css/ribbons.css"></link>
+
+  
+  <!-- Grab CDN jQuery, fall back to local if offline -->
+  <script src="http://ajax.aspnetcdn.com/ajax/jQuery/jquery-1.7.min.js"></script>
+  <script>window.jQuery || document.write('<script src="libraries/widgets/quiz/js/jquery.js"><\/script>')</script> 
+  <script data-main="libraries/frameworks/io2012/js/slides" 
+    src="libraries/frameworks/io2012/js/require-1.0.8.min.js">
+  </script>
+  
+  
+
+</head>
+<body style="opacity: 0">
+  <slides class="layout-widescreen">
+    
+    <!-- LOGO SLIDE -->
+        <slide class="title-slide segue nobackground">
+  <hgroup class="auto-fadein">
+    <h1>Horse Colic Severity Predictor</h1>
+    <h2>Help the experienced horse owner with colic diagnosis</h2>
+    <p>Peter Partch<br/></p>
+  </hgroup>
+  <article></article>  
+</slide>
+    
+
+    <!-- SLIDES -->
+    <slide class="" id="slide-1" style="background:;">
+  <hgroup>
+    <h2>Overview</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>Using the Horse Colic data set available from UCI Machine Learning Repository. The traning data set is comprised of:</p>
+
+<ol>
+<li>300 observations</li>
+<li>27 features</li>
+<li>about 30% missing data (including one observation without an output)</li>
+<li>several of the features that can only be done via medical personnel</li>
+<li>only 6 observations are complete (therefore we need to deal with missing data in some way)</li>
+</ol>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h2>Data Cleanup</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>The data was cleaned and modified as follows:</p>
+
+<ol>
+<li>removed features that cannot be done by an average horse owner</li>
+<li>removed features that lack &gt; 50% of the observations</li>
+<li>fill in missing observations (using nominal values or, in some cases, mean values)</li>
+</ol>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h2>Supervised Learning</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>Use randomForest as a learning algorithm with a reduced feature set that includes the following:</p>
+
+<ul>
+<li>age (a binary value of adult or young)</li>
+<li>rectal temperature (you will need a rectal thermometer for this one and  good luck)</li>
+<li>pulse (measured off the neck or jaw)</li>
+<li>respiratory rate</li>
+<li>temperature of extrmities (a judgement, not a measure)</li>
+<li>peripheral pulse</li>
+<li>mucous membranes (look in the mouth)</li>
+<li>capillary refill time (depress a bit of the gum and measure how fast it recovers to pink)</li>
+<li>pain </li>
+<li>Peristalsis (gut actifity...place your ear on the flank and listen)</li>
+<li>abdominal distension (this is an important measure)</li>
+</ul>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h2>Processing</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>Here is a bit of the processing done to produce the model (I need some R code for the assignment)</p>
+
+<pre><code class="r">filename &lt;- &quot;horse-colic.data&quot;
+if (file.exists(filename)==FALSE)
+{
+    fileurl &lt;- &quot;https://archive.ics.uci.edu/ml/machine-learning-databases/horse-colic/horse-colic.data&quot;
+    download.file(fileurl,filename,method=&#39;curl&#39;)
+}
+</code></pre>
+
+<p>The data is cleaned and then modeled using random forest (too much to show, so I&#39;ll hide that code). The confusion matrix follows (using all three output classes: lived, died, euthanized:</p>
+
+<pre><code>##     1  2 3 class.error
+## 1 153 16 9   0.1404494
+## 2  33 36 8   0.5324675
+## 3  26 15 3   0.9318182
+</code></pre>
+
+<pre><code>## Error in predict(modelFit8, colicMin): object &#39;modelFit8&#39; not found
+</code></pre>
+
+<pre><code>## Error in eval(expr, envir, enclos): object &#39;pred&#39; not found
+</code></pre>
+
+<pre><code>## Error in eval(expr, envir, enclos): object &#39;colicTestRaw&#39; not found
+</code></pre>
+
+<pre><code>## Error in sprintf(&quot;V%d&quot;, 1:dim(colicTest)[2]): object &#39;colicTest&#39; not found
+</code></pre>
+
+<pre><code>## Error in eval(expr, envir, enclos): object &#39;colicTest&#39; not found
+</code></pre>
+
+<pre><code>## Error in lapply(X = X, FUN = FUN, ...): object &#39;colicTest&#39; not found
+</code></pre>
+
+<pre><code>## Error in names(colicTest) &lt;- newnames: object &#39;colicTest&#39; not found
+</code></pre>
+
+<pre><code>## Error in mean(colicTest$rect_temp, na.rm = TRUE): object &#39;colicTest&#39; not found
+</code></pre>
+
+<pre><code>## Error in mean(colicTest$pulse, na.rm = TRUE): object &#39;colicTest&#39; not found
+</code></pre>
+
+<pre><code>## Error in mean(colicTest$resp_rate, na.rm = TRUE): object &#39;colicTest&#39; not found
+</code></pre>
+
+<pre><code>## Error in mean(colicTest$extm_temp, na.rm = TRUE): object &#39;colicTest&#39; not found
+</code></pre>
+
+<pre><code>## Error in mean(colicTest$periph_pulse, na.rm = TRUE): object &#39;colicTest&#39; not found
+</code></pre>
+
+<pre><code>## Error in mean(colicTest$muc_memb, na.rm = TRUE): object &#39;colicTest&#39; not found
+</code></pre>
+
+<pre><code>## Error in mean(colicTest$cap_refil, na.rm = TRUE): object &#39;colicTest&#39; not found
+</code></pre>
+
+<pre><code>## Error in mean(colicTest$pain, na.rm = TRUE): object &#39;colicTest&#39; not found
+</code></pre>
+
+<pre><code>## Error in mean(colicTest$peristalsis, na.rm = TRUE): object &#39;colicTest&#39; not found
+</code></pre>
+
+<pre><code>## Error in mean(colicTest$abd_dist, na.rm = TRUE): object &#39;colicTest&#39; not found
+</code></pre>
+
+<pre><code>## Error in colicTest[is.na(colicTest)] &lt;- 0: object &#39;colicTest&#39; not found
+</code></pre>
+
+<pre><code>## Error in eval(expr, envir, enclos): object &#39;colicTest&#39; not found
+</code></pre>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+<slide class="class" id="id" style="background:;">
+  <hgroup>
+    <h2>Results</h2>
+  </hgroup>
+  <article data-timings="">
+    <p>Examination of the resulting model and testing with the training and test set shows that the model was over fitted. Due to limitations on time (and this class really was to show Slidify, Kniter, HTML, and Shiny knowledge) I decided to not spend too much time on the modeling issues.</p>
+
+  </article>
+  <!-- Presenter Notes -->
+</slide>
+
+    <slide class="backdrop"></slide>
+  </slides>
+  <div class="pagination pagination-small" id='io2012-ptoc' style="display:none;">
+    <ul>
+      <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=1 title='Overview'>
+         1
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=2 title='Data Cleanup'>
+         2
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=3 title='Supervised Learning'>
+         3
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=4 title='Processing'>
+         4
+      </a>
+    </li>
+    <li>
+      <a href="#" target="_self" rel='tooltip' 
+        data-slide=5 title='Results'>
+         5
+      </a>
+    </li>
+  </ul>
+  </div>  <!--[if IE]>
+    <script 
+      src="http://ajax.googleapis.com/ajax/libs/chrome-frame/1/CFInstall.min.js">  
+    </script>
+    <script>CFInstall.check({mode: 'overlay'});</script>
+  <![endif]-->
+</body>
+  <!-- Load Javascripts for Widgets -->
+  
+  <!-- LOAD HIGHLIGHTER JS FILES -->
+  <script src="libraries/highlighters/highlight.js/highlight.pack.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <!-- DONE LOADING HIGHLIGHTER JS FILES -->
+   
+  </html>

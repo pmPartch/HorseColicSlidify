@@ -1,0 +1,154 @@
+---
+title       : Horse Colic Severity Predictor
+subtitle    : Help the experienced horse owner with colic diagnosis
+author      : Peter Partch
+job         : 
+framework   : io2012        # {io2012, html5slides, shower, dzslides, ...}
+highlighter : highlight.js  # {highlight.js, prettify, highlight}
+hitheme     : tomorrow      # 
+widgets     : []            # {mathjax, quiz, bootstrap}
+mode        : selfcontained # {standalone, draft}
+knit        : slidify::knit2slides
+---
+
+## Overview
+
+Using the Horse Colic data set available from UCI Machine Learning Repository. The traning data set is comprised of:
+
+1. 300 observations
+2. 27 features
+3. about 30% missing data (including one observation without an output)
+4. several of the features that can only be done via medical personnel
+5. only 6 observations are complete (therefore we need to deal with missing data in some way)
+
+
+--- .class #id 
+
+## Data Cleanup
+
+The data was cleaned and modified as follows:
+
+1. removed features that cannot be done by an average horse owner
+2. removed features that lack > 50% of the observations
+3. fill in missing observations (using nominal values or, in some cases, mean values)
+
+--- .class #id 
+
+## Supervised Learning
+
+Use randomForest as a learning algorithm with a reduced feature set that includes the following:
+
+* age (a binary value of adult or young)
+* rectal temperature (you will need a rectal thermometer for this one and  good luck)
+* pulse (measured off the neck or jaw)
+* respiratory rate
+* temperature of extrmities (a judgement, not a measure)
+* peripheral pulse
+* mucous membranes (look in the mouth)
+* capillary refill time (depress a bit of the gum and measure how fast it recovers to pink)
+* pain 
+* Peristalsis (gut actifity...place your ear on the flank and listen)
+* abdominal distension (this is an important measure)
+
+--- .class #id 
+
+## Processing
+
+Here is a bit of the processing done to produce the model (I need some R code for the assignment)
+```{r,cache=TRUE}
+filename <- "horse-colic.data"
+if (file.exists(filename)==FALSE)
+{
+    fileurl <- "https://archive.ics.uci.edu/ml/machine-learning-databases/horse-colic/horse-colic.data"
+    download.file(fileurl,filename,method='curl')
+}
+```
+The data is cleaned and then modeled using random forest (too much to show, so I'll hide that code). The confusion matrix follows (using all three output classes: lived, died, euthanized:
+```{r,echo=FALSE,cache=TRUE}
+colicRaw <- read.csv2("horse-colic.data",header=FALSE,sep=" ",na.strings="?", stringsAsFactors=FALSE)
+colic <- colicRaw[-c(3,24:29)] #got extra empty column at end of read...so remove it
+
+names(colic) <- sprintf("V%d",1:dim(colic)[2])
+
+#make sure all the outcomes are availbable
+colic <- colic[is.na(colic$V22)==FALSE,]
+
+#colicBook <- read.csv2("horseColicTraining.txt", header=FALSE,sep="\t")
+
+#first try only the complete cases:
+#colicComplete <-colicRaw[complete.cases(colicRaw),]
+#no this will not work since I get only 6 observations!!! WOW.
+#now replace NA's with zero and try again:
+colic[is.na(colic)] <- 0
+
+colic[, c(3,15,18,19,21)] <- sapply(colic[, c(3,15,18,19,21)], as.numeric)
+colic$V22 <- as.factor(colic$V22)
+
+newnames <- c("surgery","age","rect_temp","pulse","resp_rate","extm_temp","periph_pulse","muc_memb","cap_refil","pain","peristalsis","abd_dist","nasog_tube","reflux","refluxPH","feces","abdomen","packed_cell","protein","abd_apper","abdomcentesis","outcome")
+
+names(colic) <- newnames
+
+colic <- colic[,-c(15,20,21)] #remove columns will lots of NA's
+
+colicMin <- colic[,-c(1,13:18)]
+
+if (require("randomForest", warn.conflicts=FALSE, quietly=TRUE) == FALSE)
+{
+    install.packages("randomForest")
+    library(randomForest)
+}
+
+modFit8 <- randomForest(outcome ~ ., data = colicMin)
+modFit8$confusion
+
+pred <- predict(modelFit8,colicMin)
+trainingPreds <- sum(pred == colicMin$outcome)/length(pred)
+
+filename <- "horse-colic.test"
+if (file.exists(filename)==FALSE)
+{
+    fileurl <- "https://archive.ics.uci.edu/ml/machine-learning-databases/horse-colic/horse-colic.test"
+    download.file(fileurl,filename,method='curl')
+}
+
+colicTest <- colicTestRaw[-c(3,24:29)] #got extra empty column at end of read...so remove it
+
+names(colicTest) <- sprintf("V%d",1:dim(colicTest)[2])
+
+#make sure all the outcomes are availbable
+colicTest <- colicTest[is.na(colicTest$V22)==FALSE,]
+
+#now replace NA's with zero and try again:
+#colicTest[is.na(colicTest)] <- 0
+
+colicTest[, c(3,15,18,19,21)] <- sapply(colicTest[, c(3,15,18,19,21)], as.double)
+
+#newnames <- c("surgery","age","rect_temp","pulse","resp_rate","extm_temp","periph_pulse","muc_memb","cap_refil","pain","peristalsis","abd_dist","nasog_tube","reflux","refluxPH","feces","abdomen","packed_cell","protein","abd_apper","abdomcentesis","outcome")
+
+names(colicTest) <- newnames
+
+colicTest$rect_temp[is.na(colicTest$rect_temp)] <- mean(colicTest$rect_temp,na.rm = TRUE)
+colicTest$pulse[is.na(colicTest$pulse)] <- mean(colicTest$pulse,na.rm = TRUE)
+colicTest$resp_rate[is.na(colicTest$resp_rate)] <- mean(colicTest$resp_rate,na.rm = TRUE)
+colicTest$extm_temp[is.na(colicTest$extm_temp)] <- mean(colicTest$extm_temp,na.rm = TRUE)
+colicTest$periph_pulse[is.na(colicTest$periph_pulse)] <- mean(colicTest$periph_pulse,na.rm = TRUE)
+colicTest$muc_memb[is.na(colicTest$muc_memb)] <- mean(colicTest$muc_memb,na.rm = TRUE)
+colicTest$cap_refil[is.na(colicTest$cap_refil)] <- mean(colicTest$cap_refil,na.rm = TRUE)
+colicTest$pain[is.na(colicTest$pain)] <- mean(colicTest$pain,na.rm = TRUE)
+colicTest$peristalsis[is.na(colicTest$peristalsis)] <- mean(colicTest$peristalsis,na.rm = TRUE)
+colicTest$abd_dist[is.na(colicTest$abd_dist)] <- mean(colicTest$abd_dist,na.rm = TRUE)
+
+#now replace NA's with zero and try again:
+colicTest[is.na(colicTest)] <- 0
+
+colicTest <- colicTest[,-c(15,20,21)] #remove columns will lots of NA's
+
+```
+
+--- .class #id 
+
+## Results
+
+Examination of the resulting model and testing with the training and test set shows that the model was over fitted. Due to limitations on time (and this class really was to show Slidify, Kniter, HTML, and Shiny knowledge) I decided to not spend too much time on the modeling issues.
+
+
